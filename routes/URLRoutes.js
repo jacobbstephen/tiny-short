@@ -33,7 +33,7 @@ router.post("/shorten", authMiddleware, async (req, res) => {
     }
 
     // Generate QR as buffer
-    const qrBuffer = await QRCode.toBuffer(originalUrl); 
+    const qrBuffer = await QRCode.toBuffer(originalUrl);
 
     const shortCode = nanoid(8);
 
@@ -44,13 +44,11 @@ router.post("/shorten", authMiddleware, async (req, res) => {
       qrCode: qrBuffer,
     });
 
-    const qrCodeBase64 = qrBuffer.toString('base64');
-
+    const qrCodeBase64 = qrBuffer.toString("base64");
 
     return res.status(200).json({
       shortUrl: `http://localhost:3000/url/${shortCode}`,
       qrCode: `data:image/png;base64,${qrCodeBase64}`,
-
     });
   } catch (err) {
     return res.status(500).json({
@@ -111,27 +109,46 @@ router.get("/:shortId/analytics", authMiddleware, async (req, res) => {
       });
     }
     const urlDetails = await urlModel.findOne({
-        shortId,
-        userId: req.user.userId,
+      shortId,
+      userId: req.user.userId,
     });
 
-    if(!urlDetails){
-        return res.status(404).json({
-            message: "Analytics not Found",
-          });
+    if (!urlDetails) {
+      return res.status(404).json({
+        message: "Analytics not Found",
+      });
     }
 
     return res.status(200).json({
-        analytics: urlDetails
+      analytics: urlDetails,
     });
-
-
   } catch (err) {
     return res.status(500).json({
-        message: 'Internal Server Error',
-    })
+      message: "Internal Server Error",
+    });
   }
 });
 
+router.get("/getUrlDetails", authMiddleware, async (req, res) => {
+  try {
+    const urlDetails = await urlModel.find({
+      userId: req.user.userId,
+    });
+
+    if (urlDetails.length === 0) {
+      return res.status(404).json({
+        message: "No URLS Found",
+      });
+    }
+    return res.status(200).json({
+      urlDetails
+    })
+
+  } catch (err) {
+    return res.status(500).json({
+      message: "Internal Server Error",
+    });
+  }
+});
 
 module.exports = router;
